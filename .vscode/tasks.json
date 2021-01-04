@@ -12,6 +12,14 @@
                 "kind": "build",
                 "isDefault": true
             }
+        }, 
+        {
+            "type": "shell", 
+            "label": "run", 
+            "command": "make run", 
+            "args": [
+                
+            ], 
         }
     ]
 }

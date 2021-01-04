@@ -1,8 +1,14 @@
 #include "headers.h"
 #include "IO/io.h"
+#include "DataStructures/linked_list.h"
 
 void clearResources(int);
-  
+
+
+
+
+ProcessEntryNode_t* processEntriesHead;
+
 int main(int argc, char * argv[])
 {
     signal(SIGINT, clearResources);
@@ -11,6 +17,17 @@ int main(int argc, char * argv[])
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
     // 3. Initiate and create the scheduler and clock processes.
     // 4. Use this function after creating the clock process to initialize clock
+    ProcessEntry_t processEntry;
+    processEntry.entryId = 1;
+    processEntry.arrival = 1;
+    processEntry.runTime = 10;
+    processEntry.priority = 5;
+
+    processEntriesHead = createHead(processEntry);
+
+    printf("\n%d", processEntriesHead->val.runTime);
+
+
     initClk();
     // To get time use this
     int x = getClk();

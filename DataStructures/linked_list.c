@@ -3,9 +3,9 @@
 #include "linked_list.h"
 
 ProcessEntryNode_t* createHead(ProcessEntry_t val) {
-    ProcessEntryNode_t * head = (ProcessEntryNode_t *) malloc(sizeof(ProcessEntryNode_t));;
+    ProcessEntryNode_t* head = (ProcessEntryNode_t *) malloc(sizeof(ProcessEntryNode_t));;
     head->val = val;
-    head->next->next = NULL;
+    head->next = NULL;
 
     return head;
 }
