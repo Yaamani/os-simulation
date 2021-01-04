@@ -8,7 +8,7 @@ build:
 process_generator.out: process_generator.c headers.h IO/*
 	gcc $(filter %.c,$^) -o $@
 
-scheduler.out: scheduler.c headers.h IO/* SchedulingAlgorithms/*
+scheduler.out: scheduler.c headers.h IO/* SchedulingAlgorithms/* DataStructures/*
 	gcc $(filter %.c,$^) -o $@
 
 %.out: %.c headers.h
