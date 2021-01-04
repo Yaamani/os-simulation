@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>      //if you don't use scanf/printf change this include
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,12 +12,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include "DataStructures/linked_list.h"
   
 typedef short bool;
 #define true 1
 #define false 0
 
 #define SHKEY 300
+
+
+
 
 
 ///==============================
