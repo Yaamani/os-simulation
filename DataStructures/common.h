@@ -16,12 +16,6 @@ typedef struct ProcessEntry
     int priority;
 } ProcessEntry_t;
 
-typedef struct ProcessMsgBuffer
-{
-    long type;
-    struct ProcessEntry p;
-} ProcessMsgBuffer_t;
-
 
 
 

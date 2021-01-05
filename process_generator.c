@@ -6,7 +6,6 @@ void clearResources(int);
 
 
 
-
 ProcessEntryNode_t* processEntriesHead = NULL;
 
 int main(int argc, char * argv[])
@@ -18,6 +17,13 @@ int main(int argc, char * argv[])
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
     // 3. Initiate and create the scheduler and clock processes.
     // 4. Use this function after creating the clock process to initialize clock
+
+    ProcessEntryNode_t* current = processEntriesHead;
+    while (current)
+    {
+        printf("\n%d\t%d\t%d\t%d", current->val.entryId, current->val.arrival, current->val.runTime, current->val.priority);
+        current = current->next;
+    }
     
     
     

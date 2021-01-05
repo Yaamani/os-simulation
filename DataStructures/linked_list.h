@@ -23,5 +23,4 @@ typedef struct EventNode {
 
 
 
-ProcessEntryNode_t* createHead(ProcessEntry_t);
-void push(ProcessEntryNode_t*, ProcessEntry_t);
+void push_ProcessEntry(ProcessEntryNode_t**, ProcessEntry_t);

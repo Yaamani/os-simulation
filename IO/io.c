@@ -78,10 +78,8 @@ void readInputFile(ProcessEntryNode_t** processEntriesHead) {
     for (int i = 0; getline(&line, &len, file) != EOF; i++) {
         if (i == 0)
             continue;
-        else if (i == 1)
-            *processEntriesHead = createHead(parseProcessTxtLine(line, len));
         else
-            push(*processEntriesHead, parseProcessTxtLine(line, len));
+            push_ProcessEntry(&*processEntriesHead, parseProcessTxtLine(line, len));
     }
 
     fclose(file);

@@ -1,8 +1,5 @@
 #include "headers.h"
 #include "IO/io.h"
-#include "SchedulingAlgorithms/hpf.h"
-#include "SchedulingAlgorithms/srtn.h"
-#include "SchedulingAlgorithms/rr.h"
 
 
 //PCB pcbs[];
