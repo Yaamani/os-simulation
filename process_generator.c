@@ -7,26 +7,20 @@ void clearResources(int);
 
 
 
-ProcessEntryNode_t* processEntriesHead;
+ProcessEntryNode_t* processEntriesHead = NULL;
 
 int main(int argc, char * argv[])
 {
     signal(SIGINT, clearResources);
     // TODO Initialization
     // 1. Read the input files.
+    readInputFile(&processEntriesHead);
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
     // 3. Initiate and create the scheduler and clock processes.
     // 4. Use this function after creating the clock process to initialize clock
-    ProcessEntry_t processEntry;
-    processEntry.entryId = 1;
-    processEntry.arrival = 1;
-    processEntry.runTime = 10;
-    processEntry.priority = 5;
-
-    processEntriesHead = createHead(processEntry);
-
-    printf("\n%d", processEntriesHead->val.runTime);
-
+    
+    
+    
 
     initClk();
     // To get time use this

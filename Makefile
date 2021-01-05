@@ -1,3 +1,4 @@
+CCFLAGS=-g
 
 build:
 	for file in $(wildcard *.c); do \
@@ -6,13 +7,13 @@ build:
 
 
 process_generator.out: process_generator.c headers.h IO/* DataStructures/*
-	gcc $(filter %.c,$^) -o $@
+	gcc $(CCFLAGS) $(filter %.c,$^) -o $@
 
 scheduler.out: scheduler.c headers.h IO/* SchedulingAlgorithms/* DataStructures/*
-	gcc $(filter %.c,$^) -o $@
+	gcc $(CCFLAGS) $(filter %.c,$^) -o $@
 
 %.out: %.c headers.h
-	gcc $< -o $@
+	gcc $(CCFLAGS) $< -o $@
 
 
 # build:
