@@ -15,15 +15,36 @@ int main(int argc, char * argv[])
     // 1. Read the input files.
     readInputFile(&processEntriesHead);
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
+
+    // int chosenAlgorithm;
+    // printf("\nPlease Enter Scheduling Algorithm (0:hpf, 1:srtn, 2:rr): ");
+    // scanf("%d", &chosenAlgorithm);
+    // printf("\nchosenAlgorithm = %d\n", chosenAlgorithm);
+
     // 3. Initiate and create the scheduler and clock processes.
+    int pid;
+    for (int i = 0; i < 2; i++) {
+        pid = fork();
+        if (pid == 0) { // Child
+            if (i == 0) {
+                printf("\nI'm now child.\n");
+                char *cwd;
+                cwd=malloc(255);
+                getcwd(cwd,255);
+                strcat(cwd,"/");
+                //execl("/Users/mac/Desktop/College/OS/Project/os-project", "./clk.out", (char*) NULL);
+                execl("/bin/ps", "ps", "-l", (char*) NULL);
+            }
+        }
+    }
     // 4. Use this function after creating the clock process to initialize clock
 
-    ProcessEntryNode_t* current = processEntriesHead;
-    while (current)
-    {
-        printf("\n%d\t%d\t%d\t%d", current->val.entryId, current->val.arrival, current->val.runTime, current->val.priority);
-        current = current->next;
-    }
+    // ProcessEntryNode_t* current = processEntriesHead;
+    // while (current)
+    // {
+    //     printf("\n%d\t%d\t%d\t%d", current->val.entryId, current->val.arrival, current->val.runTime, current->val.priority);
+    //     current = current->next;
+    // }
     
     
     

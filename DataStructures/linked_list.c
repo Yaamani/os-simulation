@@ -18,7 +18,5 @@ void push_ProcessEntry(ProcessEntryNode_t** head, ProcessEntry_t val) {
     current->next = (ProcessEntryNode_t *) malloc(sizeof(ProcessEntryNode_t));
     current->next->val = val;
     current->next->next = NULL;
-
-
     
 }
