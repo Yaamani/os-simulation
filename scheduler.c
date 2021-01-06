@@ -13,7 +13,6 @@
 //update
 #define max 1000000
 PCB_t pcbs[5];
-//PCB* newCommer;
 
 //update
 const int timeSahring = 5;
@@ -36,13 +35,13 @@ void readNewProcess(); // yamani
 
 void testing(int i,int proiority,int runtime);
 
-void runProcess(PCBNode_t* head,int id);
+void runProcess(int id);
 
 int hpf_run();
 
-int rr_run(bool finished);
+int rr_run();
 
-int shortestTimeFinish_run(bool finished);
+int shortestTimeFinish_run();
 
 //update
 void copyData(PCBNode_t* current);
@@ -51,7 +50,9 @@ void handler(int signum);
 
 void printEvents();
 
+void printEvent(Event_t event);
 
+void IPCs();
 
 int shm_msgSentNum_id;
 int* shm_msgSentNum_addr;
@@ -71,43 +72,17 @@ int main(int argc, char * argv[])
 
     signal(SIGUSR1,handler);
 
+    IPCs();
+
     initClk();
 
-    key_t shm_msgSentNum_key_id;
-    shm_msgSentNum_addr = (int*) initShm(PROCESS_QUEUE_SHM_KEY_CHAR, sizeof(int), &shm_msgSentNum_key_id, &shm_msgSentNum_id);
-
-
-    key_t sem_msgSentLock_key_id;
-    initSem(PROCESS_QUEUE_SHM_SENT_SEM_KEY_CHAR, 1, &sem_msgSentLock_key_id, &sem_msgSentLock_id);
-
-    key_t sem_msgRcvLock_key_id;
-    initSem(PROCESS_QUEUE_SHM_RCVD_SEM_KEY_CHAR, 1, &sem_msgRcvLock_key_id, &sem_msgRcvdLock_id);
-
-
-    key_t key_id;
-    initMsgQ(PROCESS_QUEUE_KEY_CHAR, &key_id, &msgq_id);
-
-    currentTime = getClk();
-
-    
-
-    //printf("\nI'm Scheduler.\n");
-    
-    //TODO implement the scheduler :)
-    
-    // if (chosenScheduler == rr) {
-    //     rr_run(pcbs, newCommer);
-    // } else if (hosenScheduler == hpf) {
-    //     hpf_run(pcbs, newCommer);
-    // }
+    //currentTime = getClk();
 
     int id;
-    /*int runTime = 1 ;
-    int proiority = 3;
-    int i = 0;*/
-    //chosenScheduler = 1;
+
     //update
     current_running = (PCBNode_t*) malloc(sizeof(PCBNode_t));
+
     while(get_size(pcbHead) != 0 || !endProgram){
 
         clk = getClk();
@@ -119,31 +94,26 @@ int main(int argc, char * argv[])
             printf("\n******* Going to Read New Procs at time %d", getClk());
             readNewProcess();
             
-            //readNewProcess();
-            //testing(i,proiority+2,runTime+2);
-            //i = i + 1;
-            
             switch (chosenScheduler)
             {
                 case rr:
-                    id = rr_run(process_ended);
+                    id = rr_run();
                     break;
                 case hpf:
                     id = hpf_run();
+                    printf("\n process id %d that will run \n",id);
                     break;
                 case srtf:
-                    id = shortestTimeFinish_run(process_ended);
+                    id = shortestTimeFinish_run();
                     break;    
             }
             //update
             if(id != -1){
-                runProcess(pcbHead,id);
+                runProcess(id);
             }
             
         }
     }
-
-    //TODO implement the scheduler :)
 
     // Generate output files
 
@@ -153,9 +123,9 @@ int main(int argc, char * argv[])
     
     //printEvents();
     printf("\n Scheduler is Terminated \n");
+
     free(current_running); //be sure delete by & or not
     current_running = NULL;
-    
     
     destroyClk(/*true*/ false);
 }
@@ -167,7 +137,7 @@ int hpf_run(){
         return -1;
     }
     PCBNode_t* current = pcbHead; 
-    //PCBNode_t* highest_pcb
+    
     int highest_p = -1;
     int id;
 
@@ -186,42 +156,18 @@ int hpf_run(){
 
 //update
 
-int rr_run(bool finished){
+int rr_run(){
 
-    int id = -1;
+
     if(pcbHead == NULL){
 
         return -1;
     }
-    if(pcbHead->next == NULL){
-
-        //current_running->val.isRunning = pcbHead->val.isRunning;
-        copyData(pcbHead); 
-        if(pcbHead->val.isRunning){
-            return -1;
-        }
-        return pcbHead->val.entryId;  
-    }
+    
     //PCBNode_t* current = pcbHead;
-    if(!finished){
+    if(!process_ended){
         
-        /*while(current){
-
-            if(current->val.isRunning){
-
-                if( clk - current->val.lastStartedTime > timeSahring){
-                    
-                    if(current->next != NULL){
-                        return current->next->val.entryId;
-                    }
-                    else{return -1;}
-                }
-                else{
-                    return -1;
-                }
-
-            }
-        }*/
+        
         if( clk - current_running->val.lastStartedTime > timeSahring){
 
             if(current_running->next != NULL){
@@ -239,6 +185,7 @@ int rr_run(bool finished){
     }
     else{
 
+        process_ended = false;
         if(current_running->next != NULL){
             //current_running = current_running->next;
             copyData(current_running->next);
@@ -254,9 +201,9 @@ int rr_run(bool finished){
 
 //update
 
-int shortestTimeFinish_run(bool finished){
+int shortestTimeFinish_run(){
 
-    if(pcbHead == NULL){
+     if(pcbHead == NULL){
         return -1;
     }
     int shortest_Remainig_Time = max;
@@ -273,12 +220,12 @@ int shortestTimeFinish_run(bool finished){
         if(current->val.isRunning){
             remainingTime =  current->val.remainingTime - (clk -  current->val.lastStartedTime );
         }
-        if(remainingTime  < shortest_Remainig_Time){
+        // remainingTime != 0 if the process is ended
+        if(remainingTime  < shortest_Remainig_Time && remainingTime != 0){
 
             shortest_Remainig_Time = current->val.remainingTime;
             id = current->val.entryId;
         }
-        current = current->next;
     }
     if(current->val.isRunning){
         return -1;
@@ -286,13 +233,13 @@ int shortestTimeFinish_run(bool finished){
     return id; 
 }
 
-void runProcess(PCBNode_t* head,int id){
+void runProcess(int id){
 
     if(id == -1){
         return;
     }
 
-    PCBNode_t* current = head; 
+    PCBNode_t* current = pcbHead; 
     Event_t event;
 
     while(current){
@@ -322,15 +269,16 @@ void runProcess(PCBNode_t* head,int id){
                 event.state = FINISHED;
                 event.turnaroundTime = clk - current->val.arrivalTime;
                 event.weightedTurnaroundTime = (float)event.turnaroundTime / current->val.runTime;
-                delete_PCB(&head,id);
+                delete_PCB(&pcbHead,id);
             }
             push_Event(&eventsHead,event);
+            printEvent(event);
             break;    
         }
         current = current->next;
 
     }
-    current = get_pcb(head,id);
+    current = get_pcb(pcbHead,id);
 
     event.entryId = current->val.entryId;
     event.remaining =  current->val.remainingTime;
@@ -361,14 +309,17 @@ void runProcess(PCBNode_t* head,int id){
         else if(pid == 0){
 
             // need to be tested
-            execl("process.out","process.out", current->val.remainingTime, NULL);
+            printf("\n CREATE PROCESS id = %d \n",id);
+            execl("process.out","process.out", &(current->val.remainingTime), (char*) NULL);
 
         }
 
         current->val.pid = pid;
 
     }
+
     push_Event(&eventsHead,event);
+    printEvent(event);
     current->val.isRunning = true; 
     process_ended= false; 
 
@@ -385,6 +336,7 @@ void copyData(PCBNode_t* current){
 void handler(int signum){
 
     process_ended = true;
+    printf("\n handler is Called \n");
 }
 
 void testing(int i,int proiority,int runtime){
@@ -402,6 +354,7 @@ void testing(int i,int proiority,int runtime){
 
     push_PCB(&pcbHead,pcb[i]);
 }
+
 void printEvents(){
 
     EventNode_t* current = eventsHead;
@@ -453,6 +406,60 @@ void printEvents(){
 
 }
 
+void IPCs(){
+
+    key_t shm_msgSentNum_key_id;
+    shm_msgSentNum_addr = (int*) initShm(PROCESS_QUEUE_SHM_KEY_CHAR, sizeof(int), &shm_msgSentNum_key_id, &shm_msgSentNum_id);
+
+
+    key_t sem_msgSentLock_key_id;
+    initSem(PROCESS_QUEUE_SHM_SENT_SEM_KEY_CHAR, 1, &sem_msgSentLock_key_id, &sem_msgSentLock_id);
+
+    key_t sem_msgRcvLock_key_id;
+    initSem(PROCESS_QUEUE_SHM_RCVD_SEM_KEY_CHAR, 1, &sem_msgRcvLock_key_id, &sem_msgRcvdLock_id);
+
+
+    key_t key_id;
+    initMsgQ(PROCESS_QUEUE_KEY_CHAR, &key_id, &msgq_id);
+
+}
+
+void printEvent(Event_t event){
+
+    printf("\n --------------------- \n");
+    watch(event.entryId);
+    watch(event.remaining);
+    switch (event.state)
+    {
+    case STARTED:
+        watchS("STARTED");
+        break;
+    case STOPPED:
+        watchS("STOPPED");
+        break;
+    case FINISHED:
+        watchS("FINISHED");
+        break;
+    case RESUMED:
+        watchS("RESUMED");
+        break;    
+    }
+    watch(event.time);
+    watch(event.total);
+    watch(event.wait);
+    watch(event.arrival);
+    if(event.turnaroundTime != -1){
+        watch(event.turnaroundTime);
+    }
+    if(event.weightedTurnaroundTime != -1){
+
+        watchF(event.weightedTurnaroundTime);
+
+    }
+
+    printf("\n --------------------- \n");
+}
+
 void readNewProcess() {
     //printf("\nscheduler.out -> currentTime = %d", currentTime);
     
@@ -481,8 +488,11 @@ void readNewProcess() {
             new_val.pid      = -1;
             new_val.runTime  = val.runTime;
 
+            new_val.isRunning = false;
+
             new_val.arrivalTime   = val.arrival;
             new_val.startingTime  = -1;
+            new_val.lastStartedTime = -1;
             new_val.remainingTime = val.runTime;
 
             push_PCB(&pcbHead,new_val);
