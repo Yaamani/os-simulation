@@ -23,4 +23,13 @@ typedef struct EventNode {
 
 
 
-void push_ProcessEntry(ProcessEntryNode_t**, ProcessEntry_t);
+ProcessEntryNode_t* createHead(ProcessEntry_t);
+
+void push(ProcessEntryNode_t*, ProcessEntry_t);
+void push_PCB(PCBNode_t** head, PCB_t val);
+void push_Event(EventNode_t** head, Event_t val);
+
+void delete_PCB(PCBNode_t** head,int id);
+
+int get_size(PCBNode_t* head);
+PCBNode_t* get_pcb(PCBNode_t* head,int id);
