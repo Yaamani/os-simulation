@@ -17,6 +17,12 @@ typedef struct ProcessEntry
 } ProcessEntry_t;
 
 
+typedef struct ProcessEntryMsgBuff
+{
+    long type;
+    ProcessEntry_t p;
+
+} ProcessEntryMsgBuff_t;
 
 
 typedef struct PCB

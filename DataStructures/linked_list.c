@@ -2,21 +2,35 @@
 
 #include "linked_list.h"
 
-void push_ProcessEntry(ProcessEntryNode_t** head, ProcessEntry_t val) {
+void push_ProcessEntry(ProcessEntryNode_t** head, ProcessEntryNode_t** tail, ProcessEntry_t val) {
     if ((*head) == NULL) {
-        (*head) = (ProcessEntryNode_t *) malloc(sizeof(ProcessEntryNode_t));
+        (*head) = (*tail) = (ProcessEntryNode_t *) malloc(sizeof(ProcessEntryNode_t));
+        
         (*head)->val = val;
         (*head)->next = NULL;
         return;
     }
 
-    ProcessEntryNode_t* current = *head;
-    while (current->next) {
-        current = current->next;
+    (*tail)->next = (ProcessEntryNode_t *) malloc(sizeof(ProcessEntryNode_t));
+    (*tail)->next->val = val;
+    (*tail)->next->next = NULL;
+
+    (*tail) = (*tail)->next;
+}
+
+ProcessEntry_t removeFirst_ProcessEntry(ProcessEntryNode_t** head) {
+    ProcessEntry_t retVal;
+    if ((*head) == NULL) {
+        retVal.entryId = -1;
+        retVal.arrival = -1;
+        retVal.runTime = -1;
+        retVal.priority = -1;
+        return retVal;
     }
 
-    current->next = (ProcessEntryNode_t *) malloc(sizeof(ProcessEntryNode_t));
-    current->next->val = val;
-    current->next->next = NULL;
-    
-}
+    ProcessEntryNode_t* next_node = (*head)->next;
+    retVal = (*head)->val;
+    free(*head);
+    *head = next_node;
+    return retVal;
+} 

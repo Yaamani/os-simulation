@@ -2,6 +2,7 @@
     "cmake.configureOnOpen": false,
     "files.associations": {
         "istream": "c",
-        "streambuf": "c"
+        "streambuf": "c",
+        "system_error": "c"
     }
 }

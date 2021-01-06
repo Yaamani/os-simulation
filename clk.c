@@ -13,7 +13,7 @@ int shmid;
 void cleanup(int signum)
 {
     shmctl(shmid, IPC_RMID, NULL);
-    printf("Clock terminating!\n");
+    printf("\nClock terminating!");
     exit(0);
 }
 
@@ -41,5 +41,6 @@ int main(int argc, char * argv[])
     {
         sleep(1);
         (*shmaddr)++;
+        //printf("\nclk.out -> %d", (*shmaddr));
     }
 }

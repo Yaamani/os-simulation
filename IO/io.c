@@ -64,7 +64,7 @@ ProcessEntry_t parseProcessTxtLine(char* line, size_t len) {
     return processEntry;
 }
 
-void readInputFile(ProcessEntryNode_t** processEntriesHead) {
+void readInputFile(ProcessEntryNode_t** processEntriesHead, ProcessEntryNode_t** processEntriesTail) {
     FILE * file;
     file = fopen("processes.txt", "r");
     if (file == NULL) {
@@ -73,13 +73,15 @@ void readInputFile(ProcessEntryNode_t** processEntriesHead) {
         exit(1);
     }
 
+    ProcessEntryNode_t* tail = NULL;
+
     char* line = NULL;
     size_t len = 0;
     for (int i = 0; getline(&line, &len, file) != EOF; i++) {
         if (i == 0)
             continue;
         else
-            push_ProcessEntry(&*processEntriesHead, parseProcessTxtLine(line, len));
+            push_ProcessEntry(&*processEntriesHead, &*processEntriesTail, parseProcessTxtLine(line, len));
     }
 
     fclose(file);

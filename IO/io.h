@@ -8,4 +8,4 @@
 int charsToInt(char*, int, int);
 int getFirstIntFromString(char*, int,  int*, size_t);
 ProcessEntry_t parseProcessTxtLine(char*, size_t);
-void readInputFile(ProcessEntryNode_t**);
+void readInputFile(ProcessEntryNode_t**, ProcessEntryNode_t**);
