@@ -134,6 +134,7 @@ void down(int semId)
 
     if (semop(semId, &p_op, 1) == -1)
     {
+        printf("Error in down(), id = %d", semId);
         perror("Error in down()");
         exit(-1);
     }

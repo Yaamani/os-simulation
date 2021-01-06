@@ -1,4 +1,4 @@
-CFLAGS=-g
+CFLAGS=-g -O0
 
 build:
 	for file in $(wildcard *.c); do \
