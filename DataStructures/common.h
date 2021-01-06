@@ -1,11 +1,15 @@
 #pragma once
 
+#include <stdbool.h> 
+
 #define STARTED 0
-#define STOPED 1
+#define STOPPED 1
 #define FINISHED 2
 #define RESUMED 3
 
-//#define NULL ((viod*)0)
+
+
+//#define NULL ((void*)0)
 
 
 typedef struct ProcessEntry
@@ -15,6 +19,12 @@ typedef struct ProcessEntry
     int runTime;
     int priority;
 } ProcessEntry_t;
+
+typedef struct ProcessMsgBuffer
+{
+    long type;
+    struct ProcessEntry p;
+} ProcessMsgBuffer_t;
 
 
 typedef struct ProcessEntryMsgBuff
@@ -29,6 +39,11 @@ typedef struct PCB
 {
     int entryId;
     int pid;
+    int priority;
+    int lastStartedTime; 
+    int runTime;
+    int arrivalTime;
+    bool isRunning; // false when reading
     int startingTime;
     int remainingTime;
 } PCB_t;

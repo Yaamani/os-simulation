@@ -13,9 +13,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include "DataStructures/linked_list.h"
-#include <string.h>
-  
-typedef short bool;
+
+ 
+
 #define true 1
 #define false 0
 
