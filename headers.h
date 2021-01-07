@@ -26,6 +26,9 @@
 #define PROCESS_QUEUE_SHM_SENT_SEM_KEY_CHAR 'l'
 #define PROCESS_QUEUE_SHM_RCVD_SEM_KEY_CHAR 'm'
 
+#define PROCESS_FINISHES_FIRST_SEM_KEY_CHAR 'f'
+
+
 
 union semun
 {

@@ -146,7 +146,7 @@ void mainLoop() {
                 
                 up(sem_msgSentLock_id); // Lock -> Sending is now finished (Scheduler can start to recieve processes). I have to wait till it finishes recieving all processes.
                 
-                sleep(10);
+                sleep(30);
                 break;
             }
             else {
