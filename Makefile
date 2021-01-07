@@ -7,13 +7,13 @@ build:
 
 
 process_generator.out: process_generator.c headers.h IO/* DataStructures/*
-	gcc $(CFLAGS) $(filter %.c,$^) -o $@
+	gcc $(CFLAGS) $(filter %.c,$^) -lm -o $@
 
 scheduler.out: scheduler.c headers.h IO/* DataStructures/*
-	gcc $(CFLAGS) $(filter %.c,$^) -o $@
+	gcc $(CFLAGS) $(filter %.c,$^) -lm -o $@
 
 %.out: %.c headers.h
-	gcc $(CFLAGS) $< -o $@
+	gcc $(CFLAGS) $< -lm -o $@
 
 
 # build:

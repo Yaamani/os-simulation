@@ -33,3 +33,5 @@ void delete_PCB(PCBNode_t** head,int id);
 
 int get_size(PCBNode_t* head);
 PCBNode_t* get_pcb(PCBNode_t* head,int id);
+
+void pop_push_pcb(PCBNode_t** head);

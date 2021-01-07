@@ -84,10 +84,25 @@ void push_Event(EventNode_t** head, Event_t val) {
     current->next->val = val;
     current->next->next = NULL;
 }
+
+void pop_push_pcb(PCBNode_t** head){
+    PCBNode_t* current = *head;
+    if(current->next==NULL){
+        return;
+    }
+    
+    //get to last element
+    while (current->next) {
+        current = current->next;
+    }
+    current->next =*head;
+    *head = (*head)->next;
+}
+
 void delete_PCB(PCBNode_t** head,int id){
 
     PCBNode_t* previous = NULL;
-    PCBNode_t* current = *head;
+    PCBNode_t* current  = *head;
 
     if((*head)->val.entryId == id){
 

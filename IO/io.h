@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+//#include </usr/lib/libm.a>
 #include "../DataStructures/linked_list.h"
 
 int charsToInt(char*, int, int);
