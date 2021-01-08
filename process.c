@@ -49,7 +49,7 @@ int main(int agrc, char * argv[])
                 kill(getppid(),SIGUSR1);
 
             // UP
-            printf("\n ***** UP SEMAPHORE **** \n");
+            //printf("\n ***** UP SEMAPHORE **** \n");
             up(sem_processFinishesFirstLock_id);
             
         }

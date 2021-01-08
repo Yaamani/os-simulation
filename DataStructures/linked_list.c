@@ -24,6 +24,7 @@ void push_ProcessEntry(ProcessEntryNode_t** head, ProcessEntryNode_t** tail, Pro
     (*tail) = (*tail)->next;
 }
 
+
 ProcessEntry_t removeFirst_ProcessEntry(ProcessEntryNode_t** head) {
     ProcessEntry_t retVal;
     if ((*head) == NULL) {
@@ -97,6 +98,7 @@ void pop_push_pcb(PCBNode_t** head){
     }
     current->next =*head;
     *head = (*head)->next;
+    current->next->next=NULL;
 }
 
 void delete_PCB(PCBNode_t** head,int id){

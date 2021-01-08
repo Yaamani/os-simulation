@@ -12,10 +12,9 @@
 
 //update
 #define max 1000000
-PCB_t pcbs[5];
 
 //update
-const int timeSahring = 2;
+const int timeSharing = 2;
 
 PCBNode_t* pcbHead = NULL;
 EventNode_t* eventsHead = NULL;
@@ -94,7 +93,7 @@ int main(int argc, char * argv[])
         
         if(previousClk != clk){
            
-            printf("\n ***** DOWN SEMAPHORE **** \n");
+            //printf("\n ***** DOWN SEMAPHORE **** \n");
             down(sem_processFinishesFirstLock_id);
 
 
@@ -128,13 +127,19 @@ int main(int argc, char * argv[])
     }
 
     // Generate output files
-
-
+   
     
     //upon termination release the clock resources. 
     
     //printEvents();
+    if(semctl(sem_processFinishesFirstLock_id,0,IPC_RMID) == -1){
+
+        printf("Error in remove, id = %d", sem_processFinishesFirstLock_id);
+        perror("Error in remove");
+    }
     printf("\n Scheduler is Terminated \n");
+    writeEventsIntoFile(eventsHead);
+    
 
     free(current_running); //be sure delete by & or not
     current_running = NULL;
@@ -177,7 +182,7 @@ int rr_run(){
         return -1;
     }
     //PCBNode_t* current = pcbHead;
-
+    printf("\n INSIDE rr_run \n");
     if(process_ended){
 
         if(pcbHead->val.isRunning){
@@ -202,7 +207,7 @@ int rr_run(){
 
         if(pcbHead->val.isRunning){
 
-            if(clk - pcbHead->val.lastStartedTime >= timeSahring){ 
+            if(clk - pcbHead->val.lastStartedTime >= timeSharing){ 
                 pop_push_pcb(&pcbHead);
                 if(pcbHead->next == NULL){
                     return -1;
@@ -269,7 +274,7 @@ void runProcess(int id){
     if(id == -1){
         if(process_ended){
             while(current){
-
+                printf("\n INSIDE PROCESS ENDED INSIDE RUNPROCESS \n");
                 if(current->val.isRunning){
                     
                     //add new event
@@ -305,7 +310,7 @@ void runProcess(int id){
     }
 
     while(current){
-
+        printf("\n INSIDE RUN PROCESS \n");
         if(current->val.isRunning){
             
             //add new event
@@ -543,6 +548,7 @@ void readNewProcess() {
     if(endProgram){
         return;
     }
+    printf("\n INSIDE readNewProcess \n");
     down(sem_msgSentLock_id);
 
     currentTime = getClk();
