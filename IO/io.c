@@ -87,7 +87,7 @@ void readInputFile(ProcessEntryNode_t** processEntriesHead, ProcessEntryNode_t**
     fclose(file);
 }
 
-void writeEventsIntoFile(EventNode_t* head){
+void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
 
     FILE *fp;
     EventNode_t* current = head;
@@ -95,7 +95,7 @@ void writeEventsIntoFile(EventNode_t* head){
     float avgWTA = 0, avgWaiting = 0, stdWTA = 0;
 
     printf("\n START WRITING \n");
-    fp = fopen("events.txt", "w+");
+    fp = fopen("scheduler.log", "w+");
 
     float sumWTA = 0;
     float sumWaiting = 0;
@@ -150,7 +150,7 @@ void writeEventsIntoFile(EventNode_t* head){
     printf("\n FINISHED WRITING \n");
     fclose(fp);
 
-    fp = fopen("SchedulerPerformance.txt", "w+");
+    fp = fopen("scheduler.perf", "w+");
 
     avgWTA = sumWTA/counterWTA;
     avgWaiting = sumWaiting/counterWTA;
@@ -171,8 +171,34 @@ void writeEventsIntoFile(EventNode_t* head){
     stdWTA = sqrt((sumSTD/counterWTA));
         
     
-    fprintf(fp,"CPU utilization = 100 \navgWTA %f \navgWaiting %f \nStdWTA %f ",avgWTA,avgWaiting,stdWTA);
+    fprintf(fp,"CPU utilization = %f  \navgWTA = %f \navgWaiting = %f \nStdWTA = %f ",cpuUtilization,avgWTA,avgWaiting,stdWTA);
 
+    fclose(fp);
+
+}
+
+void writeMemEventsIntoFile(MemoryEventNode_t* head){
+
+
+    FILE *fp;
+    MemoryEventNode_t* current = head;
+
+    fp = fopen("memory.log", "w+");
+
+    while(current){
+
+        MemoryEvent_t event = current->val;
+        if(current->val.allocated){
+            fprintf(fp, "At time %d allocated %d bytes for process %d from %d to %d ",event.time,event.requestedSize,event.entryId,event.startAddress,event.endAddress);
+        }else{
+            fprintf(fp, "At time %d freed %d bytes for process %d from %d to %d ",event.time,event.requestedSize,event.entryId,event.startAddress,event.endAddress);
+        }
+       
+        fprintf(fp,"\n\n");
+        current = current->next;
+
+    }
+   
     fclose(fp);
 
 }

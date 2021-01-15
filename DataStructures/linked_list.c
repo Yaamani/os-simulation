@@ -155,3 +155,147 @@ PCBNode_t* get_pcb(PCBNode_t* head,int id){
     return NULL;
 
 }
+
+// start
+
+// functions of memory
+
+void push_MemoryEvent(MemoryEventNode_t** head, MemoryEvent_t val) {
+
+    MemoryEventNode_t* current = *head;
+
+    if( *head == NULL){
+        
+        *head = ( MemoryEventNode_t*) malloc(sizeof(MemoryEventNode_t));
+        (*head)->val = val;
+
+        return;
+    }
+
+    while (current->next) {
+        current = current->next;
+    }
+
+    /* now we can add a new variable */
+    current->next = (MemoryEventNode_t *) malloc(sizeof(MemoryEventNode_t));
+    current->next->val = val;
+    current->next->next = NULL;
+}
+
+void initializeMemory(MemoryNode_t ** head){
+
+    *head = (MemoryNode_t *) malloc(sizeof(MemoryNode_t));
+
+    (*head)->val.size = 1024;
+    (*head)->val.entryId = -1;
+    (*head)->val.requestedSize = 0;
+    (*head)->val.startAddress = 0;
+}
+
+MemoryNode_t* getMemoryCell(MemoryNode_t * head,int entryId){
+
+    MemoryNode_t* current = head;
+
+    while (current){
+        if(current->val.entryId==entryId){
+            return current;
+        }
+        current = current->next;
+    }
+    
+    return NULL;
+}
+
+
+void splitMemoreCells(MemoryNode_t * toBeSplitNode){
+
+    MemoryCell_t val;
+    toBeSplitNode->val.size = toBeSplitNode->val.size/2;
+
+    val.size = toBeSplitNode->val.size;
+    val.entryId = -1;
+    val.startAddress = toBeSplitNode->val.startAddress + toBeSplitNode->val.size;
+    val.requestedSize = 0;
+
+    
+    MemoryNode_t* newNode = (MemoryNode_t *) malloc(sizeof(MemoryNode_t));
+    newNode->val = val;
+    newNode->next = toBeSplitNode->next;
+    toBeSplitNode->next = newNode;
+
+    
+    //return toBeSplitNode;
+}
+
+MemoryNode_t* allocate(MemoryNode_t * head ,int entryId,int requestedSize){
+    
+    MemoryNode_t* targetNode = NULL;
+    MemoryNode_t * current =  head;
+
+    int n = ceil(log(requestedSize)/log(2));
+
+    int memoryCellSize = pow(2,n);
+    
+    while(current){
+        if(current->val.entryId==-1 && current->val.size>=requestedSize){
+            if(targetNode==NULL){
+                targetNode = current;
+            }
+            else{
+                if(current->val.size < targetNode->val.size){
+                    targetNode =current;
+                }    
+            }
+        }
+        current = current->next;
+    }
+    if(targetNode == NULL){
+        return NULL;
+    }
+    while(memoryCellSize != targetNode->val.size ){
+
+        splitMemoreCells(targetNode);
+
+    }
+    targetNode->val.entryId = entryId;
+    targetNode->val.requestedSize = requestedSize;
+
+    return targetNode;
+
+}
+
+
+void deallocation(MemoryNode_t ** head,MemoryNode_t * toBeDeallocatedNode){
+
+    toBeDeallocatedNode->val.entryId = -1;
+    fixMemory(head);   
+}
+
+void fixMemory(MemoryNode_t ** head){
+
+    MemoryNode_t* current = *head;
+
+    if(current == NULL){
+        return;
+    }
+    
+    while (current->next) {
+        
+        MemoryCell_t currentCell = current->val;
+        MemoryCell_t nextCell = current->next->val;
+        
+        if(currentCell.entryId == -1 && nextCell.entryId == -1 && nextCell.size == currentCell.size && currentCell.startAddress%(currentCell.size*2)==0 ){
+
+            MemoryNode_t* temp  = current->next;
+            current->next = current->next->next;
+            current->val.size = current->val.size * 2;
+            free(temp);    
+            continue;
+        }
+
+        current = current->next;
+    }
+
+}
+
+// end
