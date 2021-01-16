@@ -1,4 +1,4 @@
-CFLAGS=-g -O0
+CFLAGS=-g
 
 build:
 	for file in $(wildcard *.c); do \
@@ -24,7 +24,7 @@ scheduler.out: scheduler.c headers.h IO/* DataStructures/*
 # 	gcc test_generator.c -o test_generator.out
 
 clean:
-	rm -f *.out  processes.txt
+	rm -f *.out  
 
 all: clean build
 

@@ -14,7 +14,7 @@
 #define max 1000000
 
 //update
-const int timeSharing = 2;
+const int timeSharing = 1;
 
 PCBNode_t* pcbHead = NULL;
 EventNode_t* eventsHead = NULL;
@@ -36,6 +36,7 @@ PCBNode_t* current_running = NULL; // for roundRoben
 
 void readNewProcess(); // yamani
 
+ void addPreviouslyUnfitProcess();
 // int getChosenScheduler(){} //yamani
 
 void testing(int i,int proiority,int runtime);
@@ -59,14 +60,21 @@ void printEvent(Event_t event);
 
 void IPCs();
 
+void destroyIPCs();
+
 int shm_msgSentNum_id;
 int* shm_msgSentNum_addr;
 int sem_msgSentLock_id;
 int sem_msgRcvdLock_id;
 int msgq_id;
 
+int shm_processEnded_id;
+int* shm_processEnded_addr;
 
 int sem_processFinishesFirstLock_id;
+
+int sem_processStartsAfterSchdulerPermission_id;
+
 
 
 int currentTime;
@@ -102,14 +110,18 @@ int main(int argc, char * argv[])
         if(previousClk != clk){
             
             schedulerRunTime++;
-            //printf("\n ***** DOWN SEMAPHORE **** \n");
+            printf("\n ***** DOWN SEMAPHORE **** \n");
             down(sem_processFinishesFirstLock_id);
 
+            if (*shm_processEnded_addr == 1) { // true
+                process_ended = true;
+                *shm_processEnded_addr = 0;
+            }
 
             //sleep(0.6);
-            printf("\n XXXXXXXsize of PCB = %d, end program value = %d \n", get_size(pcbHead), endProgram);
+            //printf("\n XXXXXXXsize of PCB = %d, end program value = %d \n", get_size(pcbHead), endProgram);
             previousClk = clk;
-            printf("\n ******* Going to Read New Procs at time %d \n", getClk());
+            //printf("\n ******* Going to Read New Procs at time %d \n", getClk());
 
             readNewProcess();
             
@@ -117,11 +129,11 @@ int main(int argc, char * argv[])
             {
                 case rr:
                     id = rr_run();
-                    printf("\n process id %d that will run \n",id);
+                    //printf("\n process id %d that will run \n",id);
                     break;
                 case hpf:
                     id = hpf_run();
-                    printf("\n process id %d that will run \n",id);
+                    //printf("\n process id %d that will run \n",id);
                     break;
                 case srtf:
                     id = shortestTimeFinish_run();
@@ -146,12 +158,10 @@ int main(int argc, char * argv[])
     //upon termination release the clock resources. 
     
     //printEvents();
-    if(semctl(sem_processFinishesFirstLock_id,0,IPC_RMID) == -1){
 
-        printf("Error in remove, id = %d", sem_processFinishesFirstLock_id);
-        perror("Error in remove");
-    }
-    printf("\n Scheduler is Terminated \n");
+    destroyIPCs();
+
+    //printf("\n Scheduler is Terminated \n");
     float cpuUtilization = 100-((schedulerRunTime-processesRunTime)/getClk())*100;
     writeEventsIntoFile(eventsHead, cpuUtilization);
     writeMemEventsIntoFile(memoryEventsHead);
@@ -289,7 +299,7 @@ void runProcess(int id){
     if(id == -1){
         if(process_ended){
             while(current){
-                printf("\n INSIDE PROCESS ENDED INSIDE RUNPROCESS \n");
+                //printf("\n INSIDE PROCESS ENDED INSIDE RUNPROCESS \n");
                 if(current->val.isRunning){
                     
                     //add new event
@@ -311,14 +321,14 @@ void runProcess(int id){
                     MemoryEvent_t newMemEvent ;
 
                     newMemEvent.entryId = current->val.entryId ;
-                    newMemEvent.time = getClock();
+                    newMemEvent.time = getClk();
                     newMemEvent.allocated = false;
                     newMemEvent.requestedSize = current->val.memorySize;
                     newMemEvent.startAddress = toBeDeletedNode->val.startAddress ;
                     newMemEvent.endAddress = toBeDeletedNode->val.startAddress + toBeDeletedNode->val.size - 1;
                     push_MemoryEvent(&memoryEventsHead,newMemEvent);
                 
-                    deallocation(&memoryEventsHead,toBeDeletedNode);
+                    deallocation(&memHead,toBeDeletedNode);
                     
                     delete_PCB(&pcbHead,current->val.entryId);
                     //printf("\n deleted  %d \n",pcbHead->val.entryId);
@@ -339,7 +349,7 @@ void runProcess(int id){
     }
 
     while(current){
-        printf("\n INSIDE RUN PROCESS \n");
+        //printf("\n INSIDE RUN PROCESS \n");
         if(current->val.isRunning){
             
             //add new event
@@ -367,20 +377,20 @@ void runProcess(int id){
                 MemoryEvent_t newMemEvent;
                 
                 newMemEvent.entryId = current->val.entryId ;
-                newMemEvent.time = getClock();
+                newMemEvent.time = getClk();
                 newMemEvent.allocated = false;
                 newMemEvent.requestedSize = current->val.memorySize;
                 newMemEvent.startAddress = toBeDeletedNode->val.startAddress ;
                 newMemEvent.endAddress = toBeDeletedNode->val.startAddress + toBeDeletedNode->val.size - 1;
                 push_MemoryEvent(&memoryEventsHead,newMemEvent);
             
-                deallocation(&memoryEventsHead,toBeDeletedNode);
+                deallocation(&memHead,toBeDeletedNode);
                 addPreviouslyUnfitProcess();
                 event.state = FINISHED;
                 event.turnaroundTime = clk - current->val.arrivalTime;
                 event.weightedTurnaroundTime = (float)event.turnaroundTime / current->val.runTime;
                 delete_PCB(&pcbHead,current->val.entryId);
-                printf("\n deleted  %d \n",pcbHead->val.entryId);
+            //    printf("\n deleted  %d \n",pcbHead->val.entryId);
             }
             
             push_Event(&eventsHead,event);
@@ -392,7 +402,7 @@ void runProcess(int id){
 
     }
 
-    printf("\n ### pcb %d is going to create \n",id);
+    //printf("\n ### pcb %d is going to create \n",id);
 
     current = get_pcb(pcbHead,id);
     printf("\n entry id :::: %d \n",current->val.entryId);
@@ -425,7 +435,7 @@ void runProcess(int id){
         else if(pid == 0){
 
             // need to be tested
-            printf("\n CREATE PROCESS id = %d \n",id);
+      //      printf("\n CREATE PROCESS id = %d \n",id);
             
             int timeString = current->val.remainingTime;
             int length = snprintf( NULL, 0, "%d", timeString );
@@ -491,7 +501,7 @@ void printEvents(){
     int i = 1;
     while(current){
 
-        printf("\n Event%d \n",i);
+        //printf("\n Event%d \n",i);
         watch(current->val.entryId);
         watch(current->val.remaining);
         switch (current->val.state)
@@ -548,6 +558,16 @@ void IPCs(){
     key_t sem_processFinishesFirstLock_key_id;
     initSem(PROCESS_FINISHES_FIRST_SEM_KEY_CHAR, 1, &sem_processFinishesFirstLock_key_id, &sem_processFinishesFirstLock_id);
     setValSem(sem_processFinishesFirstLock_id, 0, 1);
+    printf("sem_processFinishesFirstLock_id = %d",sem_processFinishesFirstLock_id);
+
+
+    key_t shm_processEnded_key_id;
+    shm_processEnded_addr = (int*) initShm(PROCESS_ENDED_SHM_KEY_CHAR, sizeof(int), &shm_processEnded_key_id, &shm_processEnded_id);
+    *shm_processEnded_addr = 0;
+
+    key_t sem_processStartsAfterSchdulerPermission_key_id;
+    initSem(PROCESS_SHEDULER_PERMISSION_FIRST_SEM_KEY_CHAR, 1, &sem_processStartsAfterSchdulerPermission_key_id, &sem_processStartsAfterSchdulerPermission_id);
+    setValSem(sem_processFinishesFirstLock_id, 0, 0);
 }
 
 void printEvent(Event_t event){
@@ -597,7 +617,7 @@ void addPreviouslyUnfitProcess(){
         if(newlyAllocated != NULL){
             MemoryEvent_t newMemEvent ;
             newMemEvent.entryId = new_val.entryId ;
-            newMemEvent.time = getClock();
+            newMemEvent.time = getClk();
             newMemEvent.allocated = true;
             newMemEvent.requestedSize = new_val.memorySize;
             newMemEvent.startAddress = newlyAllocated->val.startAddress ;
@@ -618,11 +638,11 @@ void readNewProcess() {
     if(endProgram){
         return;
     }
-    printf("\n INSIDE readNewProcess \n");
+    //printf("\n INSIDE readNewProcess \n");
     down(sem_msgSentLock_id);
 
     currentTime = getClk();
-    printf("\n __Reading ( %d ) Process from PG at time %d \n", (*shm_msgSentNum_addr), currentTime);
+    //printf("\n __Reading ( %d ) Process from PG at time %d \n", (*shm_msgSentNum_addr), currentTime);
     
     
     if((*shm_msgSentNum_addr) == -1) {
@@ -630,7 +650,7 @@ void readNewProcess() {
     }
 
     for (int i = 0; i < (*shm_msgSentNum_addr); i++) {
-        printf("\n +++++++++++++++++++++++++++++ For loop -> shm = %d, i = %d, time = %d \n", (*shm_msgSentNum_addr), i, currentTime);
+        //printf("\n +++++++++++++++++++++++++++++ For loop -> shm = %d, i = %d, time = %d \n", (*shm_msgSentNum_addr), i, currentTime);
         ProcessEntryMsgBuff_t message;
         int rec_val = msgrcv(msgq_id, &message, sizeof(message.p), 0, !IPC_NOWAIT);
         if (rec_val == -1)
@@ -659,7 +679,7 @@ void readNewProcess() {
             else{
                 MemoryEvent_t newMemEvent ;
                 newMemEvent.entryId = new_val.entryId ;
-                newMemEvent.time = getClock();
+                newMemEvent.time = getClk();
                 newMemEvent.allocated = true;
                 newMemEvent.requestedSize = new_val.memorySize;
                 newMemEvent.startAddress = newlyAllocated->val.startAddress ;
@@ -670,11 +690,38 @@ void readNewProcess() {
             }
             
 
-            printf("\n Message Recieved -> id = %d, arrival = %d, runtime = %d, priority = %d ---- in time = %d \n", val.entryId, val.arrival, val.runTime, val.priority, currentTime);
+            //printf("\n Message Recieved -> id = %d, arrival = %d, runtime = %d, priority = %d ---- in time = %d \n", val.entryId, val.arrival, val.runTime, val.priority, currentTime);
         }
     }
-    printf("\n _______________Received Messages for PG %d at time %d \n", (*shm_msgSentNum_addr), currentTime);
+    //printf("\n _______________Received Messages for PG %d at time %d \n", (*shm_msgSentNum_addr), currentTime);
     up(sem_msgRcvdLock_id);
 
 }
 
+void destroyIPCs() {
+    if(semctl(sem_processFinishesFirstLock_id,0,IPC_RMID) == -1){
+
+        printf("Error in remove, id = %d", sem_processFinishesFirstLock_id);
+        perror("Error in remove");
+    }
+
+    if(semctl(sem_msgSentLock_id,0,IPC_RMID) == -1){
+
+        printf("Error in remove, id = %d", sem_msgSentLock_id);
+        perror("Error in remove");
+    }
+
+    if(semctl(sem_msgRcvdLock_id,0,IPC_RMID) == -1){
+
+        printf("Error in remove, id = %d", sem_msgRcvdLock_id);
+        perror("Error in remove");
+    }
+
+    if(msgctl(msgq_id, IPC_RMID, (struct msqid_ds *) 0) == -1) {
+        printf("Error in remove, id = %d", msgq_id);
+        perror("Error in remove");
+    }
+
+    shmdt(shm_msgSentNum_addr);
+    shmctl(shm_msgSentNum_id, IPC_RMID, NULL);
+}

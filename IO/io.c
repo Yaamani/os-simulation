@@ -20,7 +20,7 @@ int charsToInt(char* line, int startIndex, int endIndex) {
 int getFirstIntFromString(char* line, int startIndexToSearchFrom, int* indexAfterFoundInt, size_t len) {
     int startIndex = -1, endIndex;
     for (int i = startIndexToSearchFrom; i < len; i++) {
-        if (!(48 <= line[i] && line[i] <= 57)) { // Not a decimal digit
+        if ((line[i] < '0') || (line[i] > '9')) { // Not a decimal digit
             if (startIndex < 0)
                 startIndex = i + 1;
             else {
@@ -39,7 +39,7 @@ ProcessEntry_t parseProcessTxtLine(char* line, size_t len) {
     
     int startIndexToSearchFrom = 0;
     int indexAfterFoundInt;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         int num = getFirstIntFromString(line, startIndexToSearchFrom, &indexAfterFoundInt, len);
         startIndexToSearchFrom = indexAfterFoundInt;
         switch (i) {
@@ -57,6 +57,11 @@ ProcessEntry_t parseProcessTxtLine(char* line, size_t len) {
 
         case 3:
             processEntry.priority = num;
+            break;
+        
+        case 4:
+            //printf("\nmemorySize = %d", num);
+            processEntry.memorySize = num;
             break;
         }
     }
