@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include "common.h"
-#include <math.h>
 
 typedef struct ProcessEntryNode {
     struct ProcessEntry val;
@@ -22,37 +21,6 @@ typedef struct EventNode {
 } EventNode_t;
 
 
-typedef struct MemoryNode {
-    struct MemoryCell val;
-    struct MemoryNode * next;
-} MemoryNode_t;
-
-typedef struct MemoryEventNode {
-    struct MemoryEvent val;
-    struct MemoryEventNode * next;
-} MemoryEventNode_t;
-
-
-// ---------start
-
-//functions for memory
-
-void initializeMemory(MemoryNode_t ** head);
-
-void push_MemoryEvent(MemoryEventNode_t** head, MemoryEvent_t val);
-
-void fixMemory(MemoryNode_t ** head);
-
-void deallocation(MemoryNode_t ** head,MemoryNode_t * toBeDeallocatedNode);
-
-MemoryNode_t* allocate(MemoryNode_t * head ,int entryId,int requestedSize);
-
-MemoryNode_t* getMemoryCell(MemoryNode_t * head,int entryId);
-
-void splitMemoreCells(MemoryNode_t * toBeSplitNode);
-
-
-// ----------end 
 
 
 void push_ProcessEntry(ProcessEntryNode_t**, ProcessEntryNode_t**, ProcessEntry_t);
