@@ -18,7 +18,7 @@ typedef struct ProcessEntry
     int arrival;
     int runTime;
     int priority;
-    int memorySize; // todo i added this. d
+    int memorySize;// todo i added this. d
 } ProcessEntry_t;
 
 typedef struct ProcessMsgBuffer
