@@ -86,3 +86,119 @@ void readInputFile(ProcessEntryNode_t** processEntriesHead, ProcessEntryNode_t**
 
     fclose(file);
 }
+
+void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
+
+    FILE *fp;
+    EventNode_t* current = head;
+
+    float avgWTA = 0, avgWaiting = 0, stdWTA = 0;
+
+    printf("\n START WRITING \n");
+    fp = fopen("scheduler.log", "w+");
+
+    float sumWTA = 0;
+    float sumWaiting = 0;
+    float sumSTD = 0;
+
+    int counterWTA = 0; 
+
+    while(current){
+
+        char  state_string[30];    
+        printf("\n LOOP \n");
+        Event_t event = current->val;
+        
+        switch (event.state)
+        {
+        case STARTED:
+            printf("\n go to strcpy \n");
+            strcpy(state_string,"STARTED");
+            printf("\n out strcpy \n");
+            //watchS("STARTED");
+            break;
+        case STOPPED:
+            strcpy(state_string,"STOPPED");
+            //watchS("STOPPED");
+            break;
+        case FINISHED:
+            printf("\n go to strcpy finished \n");
+            strcpy(state_string,"FINISHED");
+            printf("\n out strcpy finished \n");
+            //watchS("FINISHED");
+            break;
+        case RESUMED:
+            strcpy(state_string,"RESUMED");
+            //watchS("RESUMED");
+            break;    
+        }
+       
+        fprintf(fp, "At time %d process %d %s arr %d total %d remain %d wait %d",event.time,event.entryId,state_string,event.arrival,event.total,event.remaining,event.wait);
+        
+        //counterWaiting++;
+        if(event.turnaroundTime != -1){
+
+            sumWaiting += event.wait;
+            counterWTA++;
+            sumWTA += event.weightedTurnaroundTime;
+            fprintf(fp," TA %d WTA %f",event.turnaroundTime,event.weightedTurnaroundTime);
+        }
+        fprintf(fp,"\n\n");
+        current = current->next;
+
+    }
+    printf("\n FINISHED WRITING \n");
+    fclose(fp);
+
+    fp = fopen("scheduler.perf", "w+");
+
+    avgWTA = sumWTA/counterWTA;
+    avgWaiting = sumWaiting/counterWTA;
+
+    current = head;
+
+    while (current)
+    {   
+        Event_t event = current->val;
+
+        if(event.turnaroundTime != -1){
+
+            sumSTD += (event.weightedTurnaroundTime-avgWTA)*(event.weightedTurnaroundTime-avgWTA);
+            
+        }
+        current = current->next;
+    }
+    stdWTA = sqrt((sumSTD/counterWTA));
+        
+    
+    fprintf(fp,"CPU utilization = %f  \navgWTA = %f \navgWaiting = %f \nStdWTA = %f ",cpuUtilization,avgWTA,avgWaiting,stdWTA);
+
+    fclose(fp);
+
+}
+
+void writeMemEventsIntoFile(MemoryEventNode_t* head){
+
+
+    FILE *fp;
+    MemoryEventNode_t* current = head;
+
+    fp = fopen("memory.log", "w+");
+
+    while(current){
+
+        MemoryEvent_t event = current->val;
+        if(current->val.allocated){
+            fprintf(fp, "At time %d allocated %d bytes for process %d from %d to %d ",event.time,event.requestedSize,event.entryId,event.startAddress,event.endAddress);
+        }else{
+            fprintf(fp, "At time %d freed %d bytes for process %d from %d to %d ",event.time,event.requestedSize,event.entryId,event.startAddress,event.endAddress);
+        }
+       
+        fprintf(fp,"\n\n");
+        current = current->next;
+
+    }
+   
+    fclose(fp);
+
+}

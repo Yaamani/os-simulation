@@ -18,6 +18,7 @@ typedef struct ProcessEntry
     int arrival;
     int runTime;
     int priority;
+    int memorySize;// todo i added this. d
 } ProcessEntry_t;
 
 typedef struct ProcessMsgBuffer
@@ -46,6 +47,7 @@ typedef struct PCB
     bool isRunning; // false when reading
     int startingTime;
     int remainingTime;
+    int memorySize;
 } PCB_t;
 
 typedef struct Event
@@ -60,3 +62,24 @@ typedef struct Event
     int turnaroundTime;
     float weightedTurnaroundTime;
 } Event_t;
+
+typedef struct MemoryEvent
+{
+    int time;
+    int entryId;
+    bool allocated;
+    int requestedSize;
+    int startAddress;
+    int endAddress;
+
+} MemoryEvent_t;
+
+
+typedef struct MemoryCell{
+    
+    int startAddress;
+    int size;
+    int requestedSize;
+    int entryId;
+
+}MemoryCell_t;
