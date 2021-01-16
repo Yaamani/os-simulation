@@ -58,6 +58,10 @@ ProcessEntry_t parseProcessTxtLine(char* line, size_t len) {
         case 3:
             processEntry.priority = num;
             break;
+        
+        case 4:
+            processEntry.memorySize = num;
+            break;
         }
     }
 
