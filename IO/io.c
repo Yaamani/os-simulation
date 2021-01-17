@@ -83,7 +83,7 @@ void readInputFile(ProcessEntryNode_t** processEntriesHead, ProcessEntryNode_t**
     char* line = NULL;
     size_t len = 0;
     for (int i = 0; getline(&line, &len, file) != EOF; i++) {
-        if (i == 0)
+        if (line[0] == '#')
             continue;
         else
             push_ProcessEntry(&*processEntriesHead, &*processEntriesTail, parseProcessTxtLine(line, len));

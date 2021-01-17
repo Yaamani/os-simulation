@@ -34,6 +34,15 @@ int main(int argc, char * argv[])
     // 1. Read the input files.
     readInputFile(&processEntriesHead, &processEntriesTail);
 
+    /*ProcessEntryNode_t* c = processEntriesHead;
+    while (c)
+    {
+        ProcessEntry_t val = c->val;
+        printf("\n -> id = %d, arrival = %d, runtime = %d, priority = %d, memsize = %d ---- in time = %d \n", val.entryId, val.arrival, val.runTime, val.priority, val.memorySize, currentTime);
+        c = c->next;
+    }*/
+    
+
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
     askUserForChosenAlgorithm();
 
