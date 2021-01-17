@@ -99,7 +99,7 @@ void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
 
     float avgWTA = 0, avgWaiting = 0, stdWTA = 0;
 
-    printf("\n START WRITING \n");
+    //printf("\n START WRITING \n");
     fp = fopen("scheduler.log", "w+");
 
     float sumWTA = 0;
@@ -111,15 +111,15 @@ void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
     while(current){
 
         char  state_string[30];    
-        printf("\n LOOP \n");
+        //printf("\n LOOP \n");
         Event_t event = current->val;
         
         switch (event.state)
         {
         case STARTED:
-            printf("\n go to strcpy \n");
+            //printf("\n go to strcpy \n");
             strcpy(state_string,"STARTED");
-            printf("\n out strcpy \n");
+            //printf("\n out strcpy \n");
             //watchS("STARTED");
             break;
         case STOPPED:
@@ -127,9 +127,9 @@ void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
             //watchS("STOPPED");
             break;
         case FINISHED:
-            printf("\n go to strcpy finished \n");
+            //printf("\n go to strcpy finished \n");
             strcpy(state_string,"FINISHED");
-            printf("\n out strcpy finished \n");
+            //printf("\n out strcpy finished \n");
             //watchS("FINISHED");
             break;
         case RESUMED:
@@ -152,7 +152,7 @@ void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
         current = current->next;
 
     }
-    printf("\n FINISHED WRITING \n");
+    //printf("\n FINISHED WRITING \n");
     fclose(fp);
 
     fp = fopen("scheduler.perf", "w+");

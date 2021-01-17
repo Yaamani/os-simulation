@@ -16,6 +16,8 @@
 //update
 const int timeSharing = 1;
 
+bool thereIsAProcessRunning = false;
+
 PCBNode_t* pcbHead = NULL;
 EventNode_t* eventsHead = NULL;
 MemoryEventNode_t* memoryEventsHead = NULL;
@@ -49,6 +51,7 @@ int rr_run();
 
 int shortestTimeFinish_run();
 
+void set_semaphores_for_process(int finishesFirst,int permission);
 //update
 void copyData(PCBNode_t* current);
 
@@ -68,12 +71,15 @@ int sem_msgSentLock_id;
 int sem_msgRcvdLock_id;
 int msgq_id;
 
+int shm_processStartsAfterSchdulerPermission_id;
+int* shm_processStartsAfterSchdulerPermission_addr;
+
 int shm_processEnded_id;
 int* shm_processEnded_addr;
 
 int sem_processFinishesFirstLock_id;
 
-int sem_processStartsAfterSchdulerPermission_id;
+//int sem_processStartsAfterSchdulerPermission_id;
 
 
 
@@ -108,10 +114,14 @@ int main(int argc, char * argv[])
         clk = getClk();
         
         if(previousClk != clk){
-            
+            //printf("\n ***** UPPING SEMAPHORE **** \n");
+            //up(sem_processStartsAfterSchdulerPermission_id); 
+            *shm_processStartsAfterSchdulerPermission_addr = 1;
             schedulerRunTime++;
-            printf("\n ***** DOWN SEMAPHORE **** \n");
+            
+            printf("\n ***** DOWNING SEMAPHORE **** \n");
             down(sem_processFinishesFirstLock_id);
+            printf("\n ***** DOWNED **** \n");
 
             if (*shm_processEnded_addr == 1) { // true
                 process_ended = true;
@@ -146,6 +156,9 @@ int main(int argc, char * argv[])
             if(get_size(pcbHead)!= 0){
 
                 processesRunTime++;
+            }
+            if(!thereIsAProcessRunning){
+                set_semaphores_for_process(1,0);
             }
         }
        
@@ -200,6 +213,12 @@ int hpf_run(){
 
 //update
 
+void set_semaphores_for_process(int finishesFirst,int permission){
+    setValSem(sem_processFinishesFirstLock_id, 0, finishesFirst);
+    *shm_processStartsAfterSchdulerPermission_addr  = permission;
+    //setValSem(sem_processStartsAfterSchdulerPermission_id, 0, permission);
+}
+
 int rr_run(){
 
 
@@ -207,7 +226,7 @@ int rr_run(){
         return -1;
     }
     //PCBNode_t* current = pcbHead;
-    printf("\n INSIDE rr_run \n");
+    //printf("\n INSIDE rr_run \n");
     if(process_ended){
 
         if(pcbHead->val.isRunning){
@@ -336,7 +355,7 @@ void runProcess(int id){
                     
                     push_Event(&eventsHead,event);
                     printEvent(event);
-                    
+                    thereIsAProcessRunning = false;
                     break;    
                 }
                 current = current->next;
@@ -361,7 +380,7 @@ void runProcess(int id){
             event.total = current->val.runTime;
             event.arrival = current->val.arrivalTime;
             event.wait = (clk - current->val.arrivalTime) - (current->val.runTime-current->val.remainingTime);
-           
+            thereIsAProcessRunning = false;
             if(!process_ended){
 
                 event.turnaroundTime = -1;
@@ -405,7 +424,7 @@ void runProcess(int id){
     //printf("\n ### pcb %d is going to create \n",id);
 
     current = get_pcb(pcbHead,id);
-    printf("\n entry id :::: %d \n",current->val.entryId);
+    //printf("\n entry id :::: %d \n",current->val.entryId);
     event.entryId = current->val.entryId;
     event.remaining =  current->val.remainingTime;
     event.time = clk;
@@ -414,10 +433,10 @@ void runProcess(int id){
     event.wait = (clk - current->val.arrivalTime) - (current->val.runTime-current->val.remainingTime);
     event.turnaroundTime = -1;
     event.weightedTurnaroundTime = -1;
-
+    set_semaphores_for_process(0,0);// added
+    thereIsAProcessRunning = true;
     // if current is paused resume and set lastStartedRunning 
     if(current->val.pid != -1){
-
         kill(current->val.pid,SIGCONT);
         current->val.lastStartedTime = clk;
 
@@ -428,6 +447,7 @@ void runProcess(int id){
         //update
         current->val.startingTime = clk;
         current->val.lastStartedTime = clk;
+                
         int pid = fork();
         if(pid == -1){
             perror("error in forking");
@@ -558,16 +578,21 @@ void IPCs(){
     key_t sem_processFinishesFirstLock_key_id;
     initSem(PROCESS_FINISHES_FIRST_SEM_KEY_CHAR, 1, &sem_processFinishesFirstLock_key_id, &sem_processFinishesFirstLock_id);
     setValSem(sem_processFinishesFirstLock_id, 0, 1);
-    printf("sem_processFinishesFirstLock_id = %d",sem_processFinishesFirstLock_id);
+    //printf("sem_processFinishesFirstLock_id = %d",sem_processFinishesFirstLock_id);
 
 
     key_t shm_processEnded_key_id;
     shm_processEnded_addr = (int*) initShm(PROCESS_ENDED_SHM_KEY_CHAR, sizeof(int), &shm_processEnded_key_id, &shm_processEnded_id);
     *shm_processEnded_addr = 0;
 
-    key_t sem_processStartsAfterSchdulerPermission_key_id;
-    initSem(PROCESS_SHEDULER_PERMISSION_FIRST_SEM_KEY_CHAR, 1, &sem_processStartsAfterSchdulerPermission_key_id, &sem_processStartsAfterSchdulerPermission_id);
-    setValSem(sem_processFinishesFirstLock_id, 0, 0);
+
+    key_t shm_processStartsAfterSchdulerPermission_key_id;
+    shm_processStartsAfterSchdulerPermission_addr = (int*) initShm(PROCESS_StartsAfterSchdulerPermission_SHM_KEY_CHAR, sizeof(int), &shm_processStartsAfterSchdulerPermission_key_id, &shm_processStartsAfterSchdulerPermission_id);
+    *shm_processStartsAfterSchdulerPermission_addr = 0;
+
+    //key_t sem_processStartsAfterSchdulerPermission_key_id;
+    //initSem(PROCESS_SHEDULER_PERMISSION_FIRST_SEM_KEY_CHAR, 1, &sem_processStartsAfterSchdulerPermission_key_id, &sem_processStartsAfterSchdulerPermission_id);
+    //setValSem(sem_processStartsAfterSchdulerPermission_id, 0, 0);
 }
 
 void printEvent(Event_t event){
@@ -724,4 +749,10 @@ void destroyIPCs() {
 
     shmdt(shm_msgSentNum_addr);
     shmctl(shm_msgSentNum_id, IPC_RMID, NULL);
+    
+    shmdt(shm_processEnded_addr);
+    shmctl(shm_processEnded_id, IPC_RMID, NULL);
+
+    shmdt(shm_processStartsAfterSchdulerPermission_addr);
+    shmctl(shm_processStartsAfterSchdulerPermission_id, IPC_RMID, NULL);
 }

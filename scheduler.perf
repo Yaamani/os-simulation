@@ -1,4 +1,4 @@
 CPU utilization = 100.000000  
-avgWTA = 2.000000 
-avgWaiting = 2.500000 
-StdWTA = 0.235702 
+avgWTA = 1.708333 
+avgWaiting = 1.750000 
+StdWTA = 0.581843 
