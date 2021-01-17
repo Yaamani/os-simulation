@@ -31,7 +31,7 @@ int schedulerRunTime = 0;
 int processesRunTime = 0;
 
 bool endProgram = false;
-bool process_ended = true;
+bool process_ended = false;
 
 //update
 PCBNode_t* current_running = NULL; // for roundRoben
@@ -64,6 +64,8 @@ void printEvent(Event_t event);
 void IPCs();
 
 void destroyIPCs();
+
+void handleFinished();
 
 int shm_msgSentNum_id;
 int* shm_msgSentNum_addr;
@@ -132,8 +134,12 @@ int main(int argc, char * argv[])
             //printf("\n XXXXXXXsize of PCB = %d, end program value = %d \n", get_size(pcbHead), endProgram);
             previousClk = clk;
             //printf("\n ******* Going to Read New Procs at time %d \n", getClk());
+            
+
+            handleFinished();
 
             readNewProcess();
+
             
             switch (chosenScheduler)
             {
@@ -175,7 +181,8 @@ int main(int argc, char * argv[])
     destroyIPCs();
 
     //printf("\n Scheduler is Terminated \n");
-    float cpuUtilization = 100-((schedulerRunTime-processesRunTime)/getClk())*100;
+    float cpuUtilization = 100-(((float)(schedulerRunTime-processesRunTime))/getClk())*100;
+    //printf("",cpuUtilization)
     writeEventsIntoFile(eventsHead, cpuUtilization);
     writeMemEventsIntoFile(memoryEventsHead);
 
@@ -187,8 +194,7 @@ int main(int argc, char * argv[])
 
 int hpf_run(){
 
-    if(pcbHead == NULL || !process_ended){
-
+    if(pcbHead == NULL || thereIsAProcessRunning){
         return -1;
     }
     PCBNode_t* current = pcbHead; 
@@ -207,7 +213,6 @@ int hpf_run(){
         current = current->next;
     }
     
-    //process_ended = false;
     return id;
 }
 
@@ -227,8 +232,9 @@ int rr_run(){
     }
     //PCBNode_t* current = pcbHead;
     //printf("\n INSIDE rr_run \n");
-    if(process_ended){
-
+    if(!thereIsAProcessRunning){
+        return pcbHead->val.entryId; // for first process in program
+/*
         if(pcbHead->val.isRunning){
 
             pop_push_pcb(&pcbHead);
@@ -239,12 +245,13 @@ int rr_run(){
             {
                 return -1; // last process so should return -1
             }
+
         }
         else 
         {
             return pcbHead->val.entryId; // for first process in program
         }
-        
+*/        
     }
     else
     {
@@ -314,7 +321,7 @@ void runProcess(int id){
 
     PCBNode_t* current = pcbHead; 
     Event_t event;
-
+/*
     if(id == -1){
         if(process_ended){
             while(current){
@@ -366,6 +373,10 @@ void runProcess(int id){
         }
         return;
     }
+*/  
+    if(id == -1){
+        return;
+    }
 
     while(current){
         //printf("\n INSIDE RUN PROCESS \n");
@@ -381,16 +392,16 @@ void runProcess(int id){
             event.arrival = current->val.arrivalTime;
             event.wait = (clk - current->val.arrivalTime) - (current->val.runTime-current->val.remainingTime);
             thereIsAProcessRunning = false;
-            if(!process_ended){
+            //if(!process_ended){
 
-                event.turnaroundTime = -1;
-                event.weightedTurnaroundTime = -1;
-                event.state = STOPPED;
+            event.turnaroundTime = -1;
+            event.weightedTurnaroundTime = -1;
+            event.state = STOPPED;
 
-                kill(current->val.pid,SIGSTOP);
-                current->val.isRunning = false;
-            }
-            else {
+            kill(current->val.pid,SIGSTOP);
+            current->val.isRunning = false;
+            //}
+            /*else {
 
                 MemoryNode_t * toBeDeletedNode = getMemoryCell(memHead,event.entryId);
                 MemoryEvent_t newMemEvent;
@@ -410,7 +421,7 @@ void runProcess(int id){
                 event.weightedTurnaroundTime = (float)event.turnaroundTime / current->val.runTime;
                 delete_PCB(&pcbHead,current->val.entryId);
             //    printf("\n deleted  %d \n",pcbHead->val.entryId);
-            }
+            }*/
             
             push_Event(&eventsHead,event);
             printEvent(event);
@@ -422,8 +433,9 @@ void runProcess(int id){
     }
 
     //printf("\n ### pcb %d is going to create \n",id);
-
+    
     current = get_pcb(pcbHead,id);
+    current_running = current ;// copyData(current); // make
     //printf("\n entry id :::: %d \n",current->val.entryId);
     event.entryId = current->val.entryId;
     event.remaining =  current->val.remainingTime;
@@ -473,16 +485,17 @@ void runProcess(int id){
     push_Event(&eventsHead,event);
     printEvent(event);
     current->val.isRunning = true; 
-    process_ended= false; 
+    //process_ended= false; 
 
 }
 
 //update
 void copyData(PCBNode_t* current){
 
-    current_running->val.isRunning = current->val.isRunning;
+    //current_running->val.isRunning = current->val.isRunning;
     current_running->next = current->next;
-    current_running->val.entryId = current->val.entryId;
+    current_running->val =  current->val;
+    //current_running->val.entryId = current->val.entryId;
 }
 
 void handler(int signum){
@@ -755,4 +768,50 @@ void destroyIPCs() {
 
     shmdt(shm_processStartsAfterSchdulerPermission_addr);
     shmctl(shm_processStartsAfterSchdulerPermission_id, IPC_RMID, NULL);
+}
+
+void handleFinished(){
+
+    if(process_ended && current_running != NULL){
+
+        PCBNode_t* current = current_running; 
+        Event_t event;
+
+        current->val.remainingTime =  current->val.remainingTime - (clk - current->val.lastStartedTime);
+
+        event.entryId = current->val.entryId;
+        event.remaining =  current->val.remainingTime;
+        event.time = clk;
+        event.total = current->val.runTime;
+        event.arrival = current->val.arrivalTime;
+        event.wait = (clk - current->val.arrivalTime) - (current->val.runTime-current->val.remainingTime);
+    
+
+        event.state = FINISHED;
+        event.turnaroundTime = clk - current->val.arrivalTime;
+        event.weightedTurnaroundTime = (float)event.turnaroundTime / current->val.runTime;
+        
+        MemoryNode_t * toBeDeletedNode = getMemoryCell(memHead,event.entryId);
+        MemoryEvent_t newMemEvent ;
+
+        newMemEvent.entryId = current->val.entryId ;
+        newMemEvent.time = getClk();
+        newMemEvent.allocated = false;
+        newMemEvent.requestedSize = current->val.memorySize;
+        newMemEvent.startAddress = toBeDeletedNode->val.startAddress ;
+        newMemEvent.endAddress = toBeDeletedNode->val.startAddress + toBeDeletedNode->val.size - 1;
+        push_MemoryEvent(&memoryEventsHead,newMemEvent);
+    
+        deallocation(&memHead,toBeDeletedNode);
+        
+        delete_PCB(&pcbHead,current->val.entryId);
+        //printf("\n deleted  %d \n",pcbHead->val.entryId);
+        addPreviouslyUnfitProcess();
+        
+        push_Event(&eventsHead,event);
+        printEvent(event);
+        thereIsAProcessRunning = false;
+        process_ended = false;       
+    }
+
 }

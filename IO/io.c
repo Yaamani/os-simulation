@@ -199,7 +199,7 @@ void writeMemEventsIntoFile(MemoryEventNode_t* head){
             fprintf(fp, "At time %d freed %d bytes for process %d from %d to %d ",event.time,event.requestedSize,event.entryId,event.startAddress,event.endAddress);
         }
        
-        fprintf(fp,"\n\n");
+        fprintf(fp,"\n");
         current = current->next;
 
     }
