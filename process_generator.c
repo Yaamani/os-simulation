@@ -155,7 +155,14 @@ void mainLoop() {
                 
                 up(sem_msgSentLock_id); // Lock -> Sending is now finished (Scheduler can start to recieve processes). I have to wait till it finishes recieving all processes.
                 
-                sleep(40);
+                //sleep(40);
+                int stat_loc;
+                int pid = wait(&stat_loc);
+                if (!(stat_loc & 0x00FF)) {
+                    //int exitCode = stat_loc >> 8;
+                    //if (pid == scheduler_pid)
+                    destroyClk(true);
+                }
                 break;
             }
             else {

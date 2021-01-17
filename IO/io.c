@@ -92,7 +92,7 @@ void readInputFile(ProcessEntryNode_t** processEntriesHead, ProcessEntryNode_t**
     fclose(file);
 }
 
-void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
+void writeEventsIntoFile(EventNode_t* head, float cpuUtilization, int algo){
 
     FILE *fp;
     EventNode_t* current = head;
@@ -101,6 +101,14 @@ void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
 
     //printf("\n START WRITING \n");
     fp = fopen("scheduler.log", "w+");
+
+    if(algo == 0)
+        fprintf(fp,"# RR\n");
+    
+    else if(algo == 1)
+        fprintf(fp,"# HPF\n");
+    else
+        fprintf(fp,"# SRTN\n");
 
     float sumWTA = 0;
     float sumWaiting = 0;
@@ -148,7 +156,7 @@ void writeEventsIntoFile(EventNode_t* head, float cpuUtilization){
             sumWTA += event.weightedTurnaroundTime;
             fprintf(fp," TA %d WTA %f",event.turnaroundTime,event.weightedTurnaroundTime);
         }
-        fprintf(fp,"\n\n");
+        fprintf(fp,"\n");
         current = current->next;
 
     }

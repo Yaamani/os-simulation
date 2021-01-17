@@ -12,5 +12,5 @@ int getFirstIntFromString(char*, int,  int*, size_t);
 ProcessEntry_t parseProcessTxtLine(char*, size_t);
 void readInputFile(ProcessEntryNode_t**, ProcessEntryNode_t**);
 
-void writeEventsIntoFile(EventNode_t* head, float cpuUtilization);
+void writeEventsIntoFile(EventNode_t* head, float cpuUtilization, int algo);
 void writeMemEventsIntoFile(MemoryEventNode_t* head);

@@ -1,4 +1,0 @@
-CPU utilization = 100 
- avgWTA 2.041667 
- avgWaiting 1.500000 
- StdWTA 1.156954 

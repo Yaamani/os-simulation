@@ -14,7 +14,7 @@
 #define max 1000000
 
 //update
-const int timeSharing = 1;
+const int timeSharing = 3;
 
 bool thereIsAProcessRunning = false;
 
@@ -183,7 +183,7 @@ int main(int argc, char * argv[])
     //printf("\n Scheduler is Terminated \n");
     float cpuUtilization = 100-(((float)(schedulerRunTime-processesRunTime))/getClk())*100;
     //printf("",cpuUtilization)
-    writeEventsIntoFile(eventsHead, cpuUtilization);
+    writeEventsIntoFile(eventsHead, cpuUtilization, chosenScheduler);
     writeMemEventsIntoFile(memoryEventsHead);
 
     free(current_running); //be sure delete by & or not
