@@ -227,11 +227,26 @@ void splitMemoreCells(MemoryNode_t * toBeSplitNode){
     //return toBeSplitNode;
 }
 
+
+int get_size_memory(MemoryNode_t* head){
+
+    int size = 0;
+
+    MemoryNode_t* current = head;
+
+    while (current) {
+        current = current->next;
+        size++;
+    }
+    return size;
+}
+
+
 MemoryNode_t* allocate(MemoryNode_t * head ,int entryId,int requestedSize){
-    
+    printf("\n------------------------allocating %d ",entryId);
     MemoryNode_t* targetNode = NULL;
     MemoryNode_t * current =  head;
-
+    printf("\n --------------- size before allocation : %d",get_size_memory(head));   
     int n = ceil(log(requestedSize)/log(2));
 
     int memoryCellSize = pow(2,n);
@@ -260,15 +275,20 @@ MemoryNode_t* allocate(MemoryNode_t * head ,int entryId,int requestedSize){
     targetNode->val.entryId = entryId;
     targetNode->val.requestedSize = requestedSize;
 
+    printf("\n --------------- size after allocation : %d",get_size_memory(head));   
+    printf("\nprocess id %d reserved %d",entryId,targetNode->val.size);
+    
     return targetNode;
 
 }
 
-
 void deallocation(MemoryNode_t ** head,MemoryNode_t * toBeDeallocatedNode){
-
+    printf("\n------------deallocating %d ",toBeDeallocatedNode->val.entryId);
+    
+    printf("\n --------------- size before deallocation : %d",get_size_memory(*head));   
     toBeDeallocatedNode->val.entryId = -1;
-    fixMemory(head);   
+    fixMemory(head);
+    printf("\n --------------- size after deallocation : %d",get_size_memory(*head));   
 }
 
 void fixMemory(MemoryNode_t ** head){

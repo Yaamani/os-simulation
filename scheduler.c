@@ -14,7 +14,7 @@
 #define max 1000000
 
 //update
-const int timeSharing = 2;
+const int timeSharing = 5;
 
 PCBNode_t* pcbHead = NULL;
 EventNode_t* eventsHead = NULL;
@@ -59,6 +59,8 @@ void printEvent(Event_t event);
 
 void IPCs();
 
+void addPreviouslyUnfitProcess();
+
 int shm_msgSentNum_id;
 int* shm_msgSentNum_addr;
 int sem_msgSentLock_id;
@@ -86,7 +88,7 @@ int main(int argc, char * argv[])
 
     initClk();
 
-    initializeMemory(&memHead);
+    //initializeMemory(&memHead);
 
     //currentTime = getClk();
 
@@ -102,7 +104,7 @@ int main(int argc, char * argv[])
         if(previousClk != clk){
             
             schedulerRunTime++;
-            //printf("\n ***** DOWN SEMAPHORE **** \n");
+            printf("\n ***** DOWN SEMAPHORE **** \n");
             down(sem_processFinishesFirstLock_id);
 
 
@@ -154,7 +156,7 @@ int main(int argc, char * argv[])
     printf("\n Scheduler is Terminated \n");
     float cpuUtilization = 100-((schedulerRunTime-processesRunTime)/getClk())*100;
     writeEventsIntoFile(eventsHead, cpuUtilization);
-    writeMemEventsIntoFile(memoryEventsHead);
+    //writeMemEventsIntoFile(memoryEventsHead);
 
     free(current_running); //be sure delete by & or not
     current_running = NULL;
@@ -197,9 +199,9 @@ int rr_run(){
         return -1;
     }
     //PCBNode_t* current = pcbHead;
-    printf("\n INSIDE rr_run \n");
+    //printf("\n INSIDE rr_run \n");
     if(process_ended){
-
+        printf("\n process is ended \n");
         if(pcbHead->val.isRunning){
 
             pop_push_pcb(&pcbHead);
@@ -288,6 +290,7 @@ void runProcess(int id){
 
     if(id == -1){
         if(process_ended){
+            printf("\n YYYYYYYYYYY Inside runProcess process_ended YYYYYYYYYYYYY \n");
             while(current){
                 printf("\n INSIDE PROCESS ENDED INSIDE RUNPROCESS \n");
                 if(current->val.isRunning){
@@ -307,22 +310,32 @@ void runProcess(int id){
                     event.turnaroundTime = clk - current->val.arrivalTime;
                     event.weightedTurnaroundTime = (float)event.turnaroundTime / current->val.runTime;
                     
-                    MemoryNode_t * toBeDeletedNode = getMemoryCell(memHead,event.entryId);
-                    MemoryEvent_t newMemEvent ;
+                    // --------------------- memory
+                    // --------------------- memory
+                    // --------------------- memory
+                    // --------------------- memory
+                    // --------------------- memory
+                    // --------------------- memory
+                    // --------------------- memory
+                    // --------------------- memory
+                    // --------------------- memory
+                    //MemoryNode_t * toBeDeletedNode = getMemoryCell(memHead,event.entryId);
+                    /*MemoryEvent_t newMemEvent ;
 
                     newMemEvent.entryId = current->val.entryId ;
-                    newMemEvent.time = getClock();
+                    newMemEvent.time = getClk();
                     newMemEvent.allocated = false;
                     newMemEvent.requestedSize = current->val.memorySize;
                     newMemEvent.startAddress = toBeDeletedNode->val.startAddress ;
                     newMemEvent.endAddress = toBeDeletedNode->val.startAddress + toBeDeletedNode->val.size - 1;
                     push_MemoryEvent(&memoryEventsHead,newMemEvent);
-                
-                    deallocation(&memoryEventsHead,toBeDeletedNode);
                     
+                    deallocation(&memHead,toBeDeletedNode);*/
+                    printf("\n BEFORE DELETE \n");
                     delete_PCB(&pcbHead,current->val.entryId);
+                    printf("\n AFTER DELETE \n");
                     //printf("\n deleted  %d \n",pcbHead->val.entryId);
-                    addPreviouslyUnfitProcess();
+                   // addPreviouslyUnfitProcess();
                     
                     push_Event(&eventsHead,event);
                     printEvent(event);
@@ -362,25 +375,33 @@ void runProcess(int id){
                 current->val.isRunning = false;
             }
             else {
-
-                MemoryNode_t * toBeDeletedNode = getMemoryCell(memHead,event.entryId);
+                // --------------------- memory
+                // --------------------- memory
+                // --------------------- memory
+                // --------------------- memory
+                // --------------------- memory
+                // --------------------- memory
+                // --------------------- memory
+                // --------------------- memory
+                // --------------------- memory
+                /*MemoryNode_t * toBeDeletedNode = getMemoryCell(memHead,event.entryId);
                 MemoryEvent_t newMemEvent;
                 
                 newMemEvent.entryId = current->val.entryId ;
-                newMemEvent.time = getClock();
+                newMemEvent.time = getClk();
                 newMemEvent.allocated = false;
                 newMemEvent.requestedSize = current->val.memorySize;
                 newMemEvent.startAddress = toBeDeletedNode->val.startAddress ;
                 newMemEvent.endAddress = toBeDeletedNode->val.startAddress + toBeDeletedNode->val.size - 1;
                 push_MemoryEvent(&memoryEventsHead,newMemEvent);
             
-                deallocation(&memoryEventsHead,toBeDeletedNode);
-                addPreviouslyUnfitProcess();
+                deallocation(&memHead,toBeDeletedNode);
+                addPreviouslyUnfitProcess();*/
                 event.state = FINISHED;
                 event.turnaroundTime = clk - current->val.arrivalTime;
                 event.weightedTurnaroundTime = (float)event.turnaroundTime / current->val.runTime;
                 delete_PCB(&pcbHead,current->val.entryId);
-                printf("\n deleted  %d \n",pcbHead->val.entryId);
+                //printf("\n deleted  %d \n",pcbHead->val.entryId);
             }
             
             push_Event(&eventsHead,event);
@@ -548,6 +569,7 @@ void IPCs(){
     key_t sem_processFinishesFirstLock_key_id;
     initSem(PROCESS_FINISHES_FIRST_SEM_KEY_CHAR, 1, &sem_processFinishesFirstLock_key_id, &sem_processFinishesFirstLock_id);
     setValSem(sem_processFinishesFirstLock_id, 0, 1);
+    printf("\nsem_processFinishesFirstLock_id = %d\n", sem_processFinishesFirstLock_id);
 }
 
 void printEvent(Event_t event){
@@ -597,7 +619,7 @@ void addPreviouslyUnfitProcess(){
         if(newlyAllocated != NULL){
             MemoryEvent_t newMemEvent ;
             newMemEvent.entryId = new_val.entryId ;
-            newMemEvent.time = getClock();
+            newMemEvent.time = getClk();
             newMemEvent.allocated = true;
             newMemEvent.requestedSize = new_val.memorySize;
             newMemEvent.startAddress = newlyAllocated->val.startAddress ;
@@ -649,17 +671,27 @@ void readNewProcess() {
             new_val.startingTime  = -1;
             new_val.lastStartedTime = -1;
             new_val.remainingTime = val.runTime;
+
+            // --------------------- memory
+            // --------------------- memory
+            // --------------------- memory
+            // --------------------- memory
+            // --------------------- memory
+            // --------------------- memory
+            // --------------------- memory
+            // --------------------- memory
+            // --------------------- memory
             
-            MemoryNode_t * newlyAllocated = allocate(memHead,new_val.entryId,new_val.memorySize);
+            //MemoryNode_t * newlyAllocated = allocate(memHead,new_val.entryId,new_val.memorySize);
             
-            if(newlyAllocated == NULL){
+            /*if(newlyAllocated == NULL){
                 // todo handlha
                 push_PCB(&memOverflowHead,new_val);
             }
             else{
                 MemoryEvent_t newMemEvent ;
                 newMemEvent.entryId = new_val.entryId ;
-                newMemEvent.time = getClock();
+                newMemEvent.time = getClk();
                 newMemEvent.allocated = true;
                 newMemEvent.requestedSize = new_val.memorySize;
                 newMemEvent.startAddress = newlyAllocated->val.startAddress ;
@@ -667,8 +699,8 @@ void readNewProcess() {
 
                 push_MemoryEvent(&memoryEventsHead,newMemEvent);
                 push_PCB(&pcbHead,new_val);
-            }
-            
+            }*/
+            push_PCB(&pcbHead,new_val);
 
             printf("\n Message Recieved -> id = %d, arrival = %d, runtime = %d, priority = %d ---- in time = %d \n", val.entryId, val.arrival, val.runTime, val.priority, currentTime);
         }

@@ -2,6 +2,7 @@
 
 //https://www.learn-c.org/en/Linked_lists
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
 #include <math.h>
